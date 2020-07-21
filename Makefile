@@ -1,3 +1,5 @@
+TEST = go test -v -failfast -cover ./...
+
 all: install
 
 install:
@@ -11,3 +13,16 @@ lint:
 	golint
 	go vet
 	gosec ./...
+
+run:
+	go run synacor.go
+
+test:
+	$(TEST)
+
+test-run:
+ifdef test
+	$(TEST) -run $(test)
+else
+	@echo Syntax is 'make $@ test=<test name>'
+endif
