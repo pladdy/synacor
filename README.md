@@ -6,35 +6,35 @@ Details that would be spoilers are intentionally left out.
 
 ## Getting Started
 
+Start the Synacor challenge!
+
 ### Pre-reqs
+
+-   Golang 1.14
 
 ### Installation / Setup
 
+`make install`
+
 ## Usage
+
+`make run`
 
 ### API
 
 ## Testing
 
-How to run tests
+`make test`
 
 ## Docs
 
-How to view docs
-
-## Built with
-
-A list:
-
--   list tech
+`make docs`
 
 ## Versioning
 
-How is versioning done
+Versioning is done using [Semver](https://semver.org/)
 
-Updating docs
-
-Tagging
+Tagging: TBD
 
 ## References
 -   [Write a VM](https://justinmeiners.github.io/lc3-vm/)

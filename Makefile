@@ -1,6 +1,10 @@
+GOFILES = $(shell find ./*.go | grep -v _test)
 TEST = go test -v -failfast -cover ./...
 
 all: install
+
+docs:
+	@go doc
 
 install:
 	go get -u golang.org/x/lint/golint
@@ -15,7 +19,7 @@ lint:
 	gosec ./...
 
 run:
-	go run synacor.go
+	go run $(GOFILES)
 
 test:
 	$(TEST)
