@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"testing"
 )
@@ -66,10 +65,10 @@ func TestIsRegister(t *testing.T) {
 func TestLoadProgram(t *testing.T) {
 	memory := loadProgram("challenge.bin")
 	memoryLen := len(memory)
-	expected := 1
+	expected := 30050
 
 	if len(memory) != expected {
-		fmt.Println("Got:", memoryLen, "Expected:", expected)
+		t.Error("Got:", memoryLen, "Expected:", expected)
 	}
 }
 

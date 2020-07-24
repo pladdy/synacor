@@ -32,14 +32,48 @@ const (
 	opNoop
 )
 
-func noop() {
-	return
+type operator func(o opcode, i int, m memoryStack) int
+
+var operatorMap = map[opcode]operator{
+	opHalt: halt,
+	opSet:  notImplemented,
+	opPush: notImplemented,
+	opPop:  notImplemented,
+	opEq:   notImplemented,
+	opGt:   notImplemented,
+	opJmp:  notImplemented,
+	opJt:   notImplemented,
+	opJf:   notImplemented,
+	opAdd:  notImplemented,
+	opMult: notImplemented,
+	opMod:  notImplemented,
+	opAnd:  notImplemented,
+	opOr:   notImplemented,
+	opNot:  notImplemented,
+	opRmem: notImplemented,
+	opWmem: notImplemented,
+	opCall: notImplemented,
+	opRet:  notImplemented,
+	opOut:  out,
+	opIn:   notImplemented,
+	opNoop: noop,
 }
 
-func halt() {
+func halt(o opcode, i int, m memoryStack) int {
 	os.Exit(0)
+	return i
 }
 
-func out(c uint16) {
-	fmt.Print(string(c))
+func noop(o opcode, i int, m memoryStack) int {
+	return i
+}
+
+func notImplemented(o opcode, i int, m memoryStack) int {
+	panic("not implemented")
+}
+
+func out(o opcode, i int, m memoryStack) int {
+	v := m[i]
+	fmt.Print(string(v))
+	return i + 1
 }

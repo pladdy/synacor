@@ -28,6 +28,20 @@ const (
 var registers [8]uint16
 var stack []uint16
 
+type memoryStack []uint16
+
+func (m *memoryStack) pop() uint16 {
+	last := len(*m) - 1
+	value := (*m)[last]
+	*m = (*m)[:last]
+	return value
+}
+
+func (m *memoryStack) push(i uint16) {
+	*m = append(*m, i)
+	return
+}
+
 func isValid(u uint16) bool {
 	return u <= registerEnd
 }
@@ -42,13 +56,12 @@ func isRegister(u uint16) bool {
 
 func loadProgram(file string) []uint16 {
 	fh, err := os.Open("./challenge.bin")
-	defer fh.Close()
 	if err != nil {
 		panic(err)
 	}
 
 	reader := bufio.NewReader(fh)
-	memory := []uint16{}
+	memory := memoryStack{}
 	i := 0
 	for {
 		le, err := readNext(reader)
@@ -56,9 +69,15 @@ func loadProgram(file string) []uint16 {
 			break
 		}
 
-		memory = append(memory, le)
+		// memory = append(memory, le)
+		memory.push(le)
 		i = i + 1
 	}
+
+	if err := fh.Close(); err != nil {
+		panic(err)
+	}
+
 	return memory
 }
 
@@ -75,6 +94,7 @@ func main() {
 	fmt.Println("Program loaded into memory.")
 
 	for i, value := range memory {
+		// i = handleOpcode(value, i, &memory)
 		fmt.Printf("Memory index: %d, Decimal: %d, Binary: %b\n", i, value, value)
 	}
 }
