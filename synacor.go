@@ -28,20 +28,6 @@ const (
 var registers [8]uint16
 var stack []uint16
 
-type memoryStack []uint16
-
-func (m *memoryStack) pop() uint16 {
-	last := len(*m) - 1
-	value := (*m)[last]
-	*m = (*m)[:last]
-	return value
-}
-
-func (m *memoryStack) push(i uint16) {
-	*m = append(*m, i)
-	return
-}
-
 func isValid(u uint16) bool {
 	return u <= registerEnd
 }
@@ -61,7 +47,7 @@ func loadProgram(file string) []uint16 {
 	}
 
 	reader := bufio.NewReader(fh)
-	memory := memoryStack{}
+	memory := []uint16{}
 	i := 0
 	for {
 		le, err := readNext(reader)
@@ -69,8 +55,7 @@ func loadProgram(file string) []uint16 {
 			break
 		}
 
-		// memory = append(memory, le)
-		memory.push(le)
+		memory = append(memory, le)
 		i = i + 1
 	}
 
@@ -93,8 +78,9 @@ func main() {
 	memory := loadProgram("./challenge.bin")
 	fmt.Println("Program loaded into memory.")
 
-	for i, value := range memory {
-		// i = handleOpcode(value, i, &memory)
-		fmt.Printf("Memory index: %d, Decimal: %d, Binary: %b\n", i, value, value)
+	for i := 0; i < len(memory); i++ {
+		v := memory[i]
+		// fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", i, v, v)
+		i = operatorMap[opcode(v)](i, &memory)
 	}
 }

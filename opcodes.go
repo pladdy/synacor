@@ -32,7 +32,7 @@ const (
 	opNoop
 )
 
-type operator func(o opcode, i int, m memoryStack) int
+type operator func(i int, m *[]uint16) int
 
 var operatorMap = map[opcode]operator{
 	opHalt: halt,
@@ -59,21 +59,22 @@ var operatorMap = map[opcode]operator{
 	opNoop: noop,
 }
 
-func halt(o opcode, i int, m memoryStack) int {
+func halt(i int, m *[]uint16) int {
 	os.Exit(0)
 	return i
 }
 
-func noop(o opcode, i int, m memoryStack) int {
+func noop(i int, m *[]uint16) int {
 	return i
 }
 
-func notImplemented(o opcode, i int, m memoryStack) int {
+func notImplemented(i int, m *[]uint16) int {
+	fmt.Println("opCode not implemented:", (*m)[i])
 	panic("not implemented")
 }
 
-func out(o opcode, i int, m memoryStack) int {
-	v := m[i]
-	fmt.Print(string(v))
-	return i + 1
+func out(i int, m *[]uint16) int {
+	arg1Index := i + 1
+	fmt.Print(string((*m)[arg1Index]))
+	return arg1Index
 }
