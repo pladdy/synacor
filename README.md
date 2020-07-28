@@ -6,36 +6,41 @@ Details that would be spoilers are intentionally left out.
 
 ## Getting Started
 
+Start the Synacor challenge!
+
 ### Pre-reqs
+
+-   Golang 1.14
 
 ### Installation / Setup
 
+`make install`
+
 ## Usage
+
+`make run`
 
 ### API
 
 ## Testing
 
-How to run tests
+`make test`
 
 ## Docs
 
-How to view docs
-
-## Built with
-
-- list tech
+`make docs`
 
 ## Versioning
 
-How is versioning done
+Versioning is done using [Semver](https://semver.org/)
 
-Updating docs
-
-Tagging
+Tagging: TBD
 
 ## References
-
-[Write a VM](https://justinmeiners.github.io/lc3-vm/)
-[How to write go](https://golang.org/doc/code.html)
-  - it's been a while and I've forgotten...
+-   [Write a VM](https://justinmeiners.github.io/lc3-vm/)
+-   [How to write go](https://golang.org/doc/code.html)
+    -   it's been a while and I've forgotten...
+-   [Reading a bit](https://stackoverflow.com/questions/29583024/reading-8-bits-from-a-reader-in-golang)
+    -   [Example](https://play.golang.org/p/Wyr_K9YAro)
+-   [encoding/binary](https://golang.org/pkg/encoding/binary/)
+-   [Endianess](https://en.wikipedia.org/wiki/Endianness)
