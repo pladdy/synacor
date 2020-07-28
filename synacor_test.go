@@ -122,3 +122,28 @@ func TestReadNextErr(t *testing.T) {
 		t.Error("Got:", err, "Expected:", io.EOF)
 	}
 }
+
+func TestRegisterGet(t *testing.T) {
+	tests := []struct {
+		reg      registers
+		index    uint16
+		expected uint16
+	}{
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, 0, 0},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register0, 0},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register1, 1},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register2, 2},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register3, 3},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register4, 4},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register5, 5},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register6, 6},
+		{registers{0, 1, 2, 3, 4, 5, 6, 7}, register7, 7},
+	}
+
+	for _, test := range tests {
+		result := test.reg.Get(test.index)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}

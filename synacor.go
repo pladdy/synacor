@@ -25,8 +25,11 @@ const (
 	register7
 )
 
-var registers [8]uint16
-var stack []uint16
+type registers [8]uint16
+
+func (r *registers) Get(register uint16) uint16 {
+	return r[register%registerStart]
+}
 
 func isValid(u uint16) bool {
 	return u <= registerEnd
@@ -75,12 +78,13 @@ func readNext(reader io.Reader) (uint16, error) {
 }
 
 func main() {
+	r := registers{}
 	memory := loadProgram("./challenge.bin")
 	fmt.Println("Program loaded into memory.")
 
 	for i := 0; i < len(memory); i++ {
 		v := memory[i]
-		// fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", i, v, v)
-		i = operatorMap[opcode(v)](i, &memory)
+		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", i, v, v)
+		i = operatorMap[opcode(v)](i, &memory, &r)
 	}
 }

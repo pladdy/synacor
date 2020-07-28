@@ -1,7 +1,15 @@
+.PHONY: coverage.txt
+
 GOFILES = $(shell find ./*.go | grep -v _test)
 TEST = go test -v -failfast -cover ./...
 
 all: install
+
+cover: coverage.txt
+	go tool cover -html=coverage.txt
+
+coverage.txt:
+	$(TEST) -coverprofile=$@ -covermode=atomic
 
 docs:
 	@go doc
