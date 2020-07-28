@@ -4,7 +4,7 @@ go:
   - "1.14"
 
 script:
-  - make && make sec && make coverage.txt
+  - make && make lint && make coverage.txt
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

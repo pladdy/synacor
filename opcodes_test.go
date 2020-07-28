@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestgetNextValueShiftIndex(t *testing.T) {
+func TestGetNextValueShiftIndex(t *testing.T) {
 	tests := []struct {
 		index         int
 		memory        []uint16
