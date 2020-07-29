@@ -42,8 +42,8 @@ var operatorMap = map[opcode]operator{
 	opEq:   notImplemented,
 	opGt:   notImplemented,
 	opJmp:  jump,
-	opJt:   notImplemented,
-	opJf:   notImplemented,
+	opJt:   jumpTrue,
+	opJf:   jumpFalse,
 	opAdd:  notImplemented,
 	opMult: notImplemented,
 	opMod:  notImplemented,
@@ -61,8 +61,15 @@ var operatorMap = map[opcode]operator{
 
 // This returns the value and shifts the provided index...
 // TODO: This function is doing too much
-func getNextValueShiftIndex(i int, m *[]uint16) (int, uint16) {
-	return i + 1, (*m)[i+1]
+func getNextValueShiftIndex(i int, m *[]uint16, r *registers) (int, uint16) {
+	newIndex := i + 1
+	value := (*m)[newIndex]
+	//fmt.Println("  getNextValue called, newIndex:", newIndex, "value:", value)
+
+	if isRegister(value) {
+		value = r.Get(value)
+	}
+	return newIndex, value
 }
 
 func halt(i int, m *[]uint16, r *registers) int {
@@ -71,16 +78,36 @@ func halt(i int, m *[]uint16, r *registers) int {
 }
 
 func jump(i int, m *[]uint16, r *registers) int {
-	_, jumpLocation := getNextValueShiftIndex(i, m)
+	_, jumpLocation := getNextValueShiftIndex(i, m, r)
+	// fmt.Println("  Jump has been called, location is:", jumpLocation)
 
-	if isRegister(jumpLocation) {
-		jumpLocation = r.Get(jumpLocation)
-	}
 	// After the jump is called the calling loop will iterate and increment
 	// the index.  This decrements the index in preperation for that.
 	// TODO: is there a better way to do this?
 	//   - IE should we just call operatorMap[int(jumpLocation)]...?
 	return int(jumpLocation) - 1
+}
+
+func jumpFalse(i int, m *[]uint16, r *registers) int {
+	i, a := getNextValueShiftIndex(i, m, r)
+	i, b := getNextValueShiftIndex(i, m, r)
+
+	if a == 0 {
+		// return jump(int(b), m, r)
+		return int(b) - 1
+	}
+	return i
+}
+
+func jumpTrue(i int, m *[]uint16, r *registers) int {
+	i, a := getNextValueShiftIndex(i, m, r)
+	i, b := getNextValueShiftIndex(i, m, r)
+
+	if a > 0 {
+		// return jump(int(b), m, r)
+		return int(b) - 1
+	}
+	return i
 }
 
 func noop(i int, m *[]uint16, r *registers) int {
@@ -92,7 +119,7 @@ func notImplemented(i int, m *[]uint16, r *registers) int {
 }
 
 func out(i int, m *[]uint16, r *registers) int {
-	index, value := getNextValueShiftIndex(i, m)
+	index, value := getNextValueShiftIndex(i, m, r)
 	fmt.Print(string(value))
 	return index
 }

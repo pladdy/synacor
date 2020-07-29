@@ -10,15 +10,18 @@ func TestGetNextValueShiftIndex(t *testing.T) {
 	tests := []struct {
 		index         int
 		memory        []uint16
+		reg           registers
 		expectedIndex int
 		expectedValue uint16
 	}{
-		{0, []uint16{0, 1}, 1, 1},
-		{1, []uint16{0, 1, 2}, 2, 2},
+		{0, []uint16{0, 1}, registers{}, 1, 1},
+		{1, []uint16{0, 1, 2}, registers{}, 2, 2},
 	}
 
 	for _, test := range tests {
-		resultIndex, resultValue := getNextValueShiftIndex(test.index, &test.memory)
+		resultIndex, resultValue := getNextValueShiftIndex(
+			test.index, &test.memory, &test.reg,
+		)
 
 		if resultIndex != test.expectedIndex {
 			t.Error("Got:", resultIndex, "Expected:", test.expectedIndex)
@@ -52,6 +55,52 @@ func TestJump(t *testing.T) {
 
 	for _, test := range tests {
 		result := jump(test.index, &test.memory, &test.reg)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+// See TestJump docstring for why expected return index is 1 minus the index
+// position.
+func TestJumpFalse(t *testing.T) {
+	tests := []struct {
+		index    int
+		memory   []uint16
+		reg      registers
+		expected int
+	}{
+		// i, a, b, a == 0, jump to b, return index of b
+		{0, []uint16{0, 0, 3, 4, 5}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 2},
+		// i, a, b, a != 0, no jump to b, next index is 2
+		{0, []uint16{0, 1, 0, 0, 0}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 2},
+	}
+
+	for _, test := range tests {
+		result := jumpFalse(test.index, &test.memory, &test.reg)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+// See TestJump docstring for why expected return index is 1 minus the index
+// position.
+func TestJumpTrue(t *testing.T) {
+	tests := []struct {
+		index    int
+		memory   []uint16
+		reg      registers
+		expected int
+	}{
+		// i, a, b, a >= 0, jump to b, return index of b
+		{0, []uint16{0, 1, 3, 4, 5}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 2},
+		// i, a, b, a !> 0, no jump to b -> 2
+		{0, []uint16{0, 0, 0, 0, 0}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 2},
+	}
+
+	for _, test := range tests {
+		result := jumpTrue(test.index, &test.memory, &test.reg)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
