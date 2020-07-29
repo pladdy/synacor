@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 const maxMemory = 32767         // var memory [2 << 14]uint16
@@ -44,7 +45,7 @@ func isRegister(u uint16) bool {
 }
 
 func loadProgram(file string) []uint16 {
-	fh, err := os.Open("./challenge.bin")
+	fh, err := os.Open(filepath.Clean(file))
 	if err != nil {
 		panic(err)
 	}

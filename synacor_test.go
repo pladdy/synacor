@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"os"
 	"testing"
 )
 
@@ -63,9 +64,24 @@ func TestIsRegister(t *testing.T) {
 }
 
 func TestLoadProgram(t *testing.T) {
-	memory := loadProgram("challenge.bin")
+	file, err := os.Create("test.bin")
+	if err != nil {
+		t.Error("Failed to create test file:", err)
+	}
+
+	err = binary.Write(file, binary.LittleEndian, uint16(19))
+	if err != nil {
+		t.Error("Failed to write to test file", err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		t.Error("Failed to close file", err)
+	}
+
+	memory := loadProgram("test.bin")
 	memoryLen := len(memory)
-	expected := 30050
+	expected := 1
 
 	if len(memory) != expected {
 		t.Error("Got:", memoryLen, "Expected:", expected)

@@ -74,7 +74,6 @@ func jump(i int, m *[]uint16, r *registers) int {
 	_, jumpLocation := getNextValueShiftIndex(i, m)
 
 	if isRegister(jumpLocation) {
-		fmt.Println("Jump value is a register")
 		jumpLocation = r.Get(jumpLocation)
 	}
 	// After the jump is called the calling loop will iterate and increment
