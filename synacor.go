@@ -26,11 +26,86 @@ const (
 	register7
 )
 
+type program struct {
+	index  int
+	memory []uint16
+}
+
+// Similar to getNextValueShiftIndex, but returns the raw value, not the value
+// in the register if the value is a register
+func (p *program) getNextRaw() uint16 {
+	p.index = p.index + 1
+	return p.memory[p.index]
+}
+
+// This returns the value and shifts the provided index...
+// TODO: This function is doing too much...what if memory was a struct that
+//       handled the index value?
+func (p *program) getNext(r *registers) uint16 {
+	p.index = p.index + 1
+	value := p.memory[p.index]
+
+	// what if the index is a register we want to set a value to?
+	if isRegister(value) {
+		value = r.Get(value)
+	}
+	return value
+}
+
+func (p *program) load(file string) {
+	fh, err := os.Open(filepath.Clean(file))
+	if err != nil {
+		panic(err)
+	}
+
+	reader := bufio.NewReader(fh)
+	i := 0
+	for {
+		le, err := readNext(reader)
+		if err == io.EOF {
+			break
+		}
+
+		p.memory = append(p.memory, le)
+		i = i + 1
+	}
+
+	if err := fh.Close(); err != nil {
+		panic(err)
+	}
+}
+
 type registers [8]uint16
 
 func (r *registers) Get(register uint16) uint16 {
 	return r[register%registerStart]
 }
+
+func (r *registers) Set(register uint16, value uint16) {
+	r[register%registerStart] = value
+}
+
+type stack []uint16
+
+func (s *stack) isEmpty() bool {
+	return len(*s) == 0
+}
+
+func (s *stack) Pop() uint16 {
+	if s.isEmpty() {
+		return 0
+	}
+	index := len(*s) - 1
+	value := (*s)[index]
+	*s = (*s)[:index]
+	return value
+}
+
+func (s *stack) Push(v uint16) {
+	*s = append(*s, v)
+}
+
+/* helpers */
 
 func isValid(u uint16) bool {
 	return u <= registerEnd
@@ -44,32 +119,6 @@ func isRegister(u uint16) bool {
 	return u >= register0 && u <= register7
 }
 
-func loadProgram(file string) []uint16 {
-	fh, err := os.Open(filepath.Clean(file))
-	if err != nil {
-		panic(err)
-	}
-
-	reader := bufio.NewReader(fh)
-	memory := []uint16{}
-	i := 0
-	for {
-		le, err := readNext(reader)
-		if err == io.EOF {
-			break
-		}
-
-		memory = append(memory, le)
-		i = i + 1
-	}
-
-	if err := fh.Close(); err != nil {
-		panic(err)
-	}
-
-	return memory
-}
-
 func readNext(reader io.Reader) (uint16, error) {
 	buf := make([]byte, 2)
 	if _, err := io.ReadFull(reader, buf); err != nil {
@@ -78,14 +127,17 @@ func readNext(reader io.Reader) (uint16, error) {
 	return binary.LittleEndian.Uint16(buf), nil
 }
 
+/* --- */
+
 func main() {
 	r := registers{}
-	memory := loadProgram("./challenge.bin")
+	p := program{}
+	p.load("./challenge.bin")
 	fmt.Println("Program loaded into memory.")
 
-	for i := 0; i < len(memory); i++ {
-		v := memory[i]
+	for i := 0; i < len(p.memory); i++ {
+		v := p.memory[i]
 		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", i, v, v)
-		i = operatorMap[opcode(v)](i, &memory, &r)
+		i = operatorMap[opcode(v)](i, &p.memory, &r)
 	}
 }

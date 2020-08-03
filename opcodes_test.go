@@ -6,6 +6,60 @@ import (
 	"testing"
 )
 
+func TestAdd(t *testing.T) {
+	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		index    int
+		memory   []uint16
+		reg      registers
+		expected uint16
+	}{
+		{0, []uint16{0, register0, 1, 1}, reg, 2},
+		{0, []uint16{0, register0, 1, 0}, reg, 1},
+	}
+
+	for _, test := range tests {
+		index := add(test.index, &test.memory, &test.reg)
+
+		// takes 3 args so index is incremented by 3
+		if index != 3 {
+			t.Error("Got:", index, "Expected:", 2)
+		}
+
+		result := test.reg.Get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestEq(t *testing.T) {
+	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		index    int
+		memory   []uint16
+		reg      registers
+		expected uint16
+	}{
+		{0, []uint16{0, register0, 1, 1}, reg, 1},
+		{0, []uint16{0, register0, 1, 0}, reg, 0},
+	}
+
+	for _, test := range tests {
+		index := eq(test.index, &test.memory, &test.reg)
+
+		// takes 3 args so index is incremented by 3
+		if index != 3 {
+			t.Error("Got:", index, "Expected:", 2)
+		}
+
+		result := test.reg.Get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
 func TestGetNextValueShiftIndex(t *testing.T) {
 	tests := []struct {
 		index         int
@@ -156,6 +210,32 @@ func TestOut(t *testing.T) {
 
 		if uint16(result) != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestSet(t *testing.T) {
+	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		index    int
+		memory   []uint16
+		reg      registers
+		expected uint16
+	}{
+		{0, []uint16{0, register0, 42}, reg, 42},
+	}
+
+	for _, test := range tests {
+		register := test.memory[1]
+		index := set(test.index, &test.memory, &test.reg)
+
+		if index != 2 {
+			t.Error("Got:", index, "Expected:", 2)
+		}
+
+		result := test.reg.Get(register)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
 		}
 	}
 }
