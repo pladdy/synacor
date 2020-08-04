@@ -31,16 +31,7 @@ type program struct {
 	memory []uint16
 }
 
-// Similar to getNextValueShiftIndex, but returns the raw value, not the value
-// in the register if the value is a register
-func (p *program) getNextRaw() uint16 {
-	p.index = p.index + 1
-	return p.memory[p.index]
-}
-
-// This returns the value and shifts the provided index...
-// TODO: This function is doing too much...what if memory was a struct that
-//       handled the index value?
+// This returns the value and shifts the provided index
 func (p *program) getNext(r *registers) uint16 {
 	p.index = p.index + 1
 	value := p.memory[p.index]
@@ -50,6 +41,13 @@ func (p *program) getNext(r *registers) uint16 {
 		value = r.Get(value)
 	}
 	return value
+}
+
+// Similar to getNext, but returns the raw value, not the value in the register
+// if the value is a register.
+func (p *program) getNextRaw() uint16 {
+	p.index = p.index + 1
+	return p.memory[p.index]
 }
 
 func (p *program) load(file string) {
@@ -127,17 +125,15 @@ func readNext(reader io.Reader) (uint16, error) {
 	return binary.LittleEndian.Uint16(buf), nil
 }
 
-/* --- */
-
 func main() {
 	r := registers{}
 	p := program{}
 	p.load("./challenge.bin")
 	fmt.Println("Program loaded into memory.")
 
-	for i := 0; i < len(p.memory); i++ {
-		v := p.memory[i]
-		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", i, v, v)
-		i = operatorMap[opcode(v)](i, &p.memory, &r)
+	for p.index < len(p.memory) {
+		v := p.memory[p.index]
+		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
+		operatorMap[opcode(v)](&p, &r)
 	}
 }
