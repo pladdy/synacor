@@ -32,7 +32,7 @@ const (
 	opNoop               // 21
 )
 
-type operator func(p *program, r *registers)
+type operator func(p *program, r *registers, s *stack)
 
 var operatorMap = map[opcode]operator{
 	opHalt: halt,
@@ -60,21 +60,22 @@ var operatorMap = map[opcode]operator{
 }
 
 // template
-// func bloop(p *program, r *registers) {
+// func bloop(p *program, r *registers, s *stack) {
 // 	// }
 
 // add: 9 a b c
 //  assign into <a> the sum of <b> and <c> (podulo 32768)
-func add(p *program, r *registers) {
+func add(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.Set(a, b+c)
+	p.index = p.index + 1
 }
 
 // eq: 4 a b c
 //   set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise
-func eq(p *program, r *registers) {
+func eq(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
@@ -84,23 +85,24 @@ func eq(p *program, r *registers) {
 	} else {
 		r.Set(a, 0)
 	}
+	p.index = p.index + 1
 }
 
 // halt: 0
 //   stop execution and terminate the program
-func halt(p *program, r *registers) {
+func halt(p *program, r *registers, s *stack) {
 	os.Exit(0)
 }
 
 // jmp: 6 a
 //   jump to <a>
-func jump(p *program, r *registers) {
+func jump(p *program, r *registers, s *stack) {
 	p.index = int(p.getNext(r))
 }
 
 // jf: 8 a b
 //   if <a> is zero, jump to <b>
-func jumpFalse(p *program, r *registers) {
+func jumpFalse(p *program, r *registers, s *stack) {
 	a := p.getNext(r)
 	b := p.getNext(r)
 
@@ -113,7 +115,7 @@ func jumpFalse(p *program, r *registers) {
 
 // jt: 7 a b
 //   if <a> is nonzero, jump to <b>
-func jumpTrue(p *program, r *registers) {
+func jumpTrue(p *program, r *registers, s *stack) {
 	a := p.getNext(r)
 	b := p.getNext(r)
 
@@ -126,31 +128,37 @@ func jumpTrue(p *program, r *registers) {
 
 // noop: 21
 //   no operation
-func noop(p *program, r *registers) {
+func noop(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
-func notImplemented(p *program, r *registers) {
+func notImplemented(p *program, r *registers, s *stack) {
 	panic(fmt.Sprintf("opCode %d not implemented", p.memory[p.index]))
 }
 
 // out: 19 a
 //   write the character represented by ascii code <a> to the terminal
-func out(p *program, r *registers) {
+func out(p *program, r *registers, s *stack) {
 	fmt.Print(string(p.getNext(r)))
 	p.index = p.index + 1
 }
 
 // push: 2 a
 //   push <a> onto the stack
-func push(p *program, r *registers) {
+func push(p *program, r *registers, s *stack) {
+	a := p.getNext(r)
+	s.push(a)
+	p.index = p.index + 1
 }
 
 // set: 1 a b
 //   set register <a> to the value of <b>
-func set(p *program, r *registers) {
+func set(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNextRaw()
-	// assume it's a register...
-	r.Set(a, b)
+
+	if isRegister(a) {
+		r.Set(a, b)
+	}
+	p.index = p.index + 1
 }

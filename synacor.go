@@ -89,7 +89,7 @@ func (s *stack) isEmpty() bool {
 	return len(*s) == 0
 }
 
-func (s *stack) Pop() uint16 {
+func (s *stack) pop() uint16 {
 	if s.isEmpty() {
 		return 0
 	}
@@ -99,7 +99,7 @@ func (s *stack) Pop() uint16 {
 	return value
 }
 
-func (s *stack) Push(v uint16) {
+func (s *stack) push(v uint16) {
 	*s = append(*s, v)
 }
 
@@ -126,14 +126,15 @@ func readNext(reader io.Reader) (uint16, error) {
 }
 
 func main() {
-	r := registers{}
 	p := program{}
+	r := registers{}
+	s := stack{}
 	p.load("./challenge.bin")
 	fmt.Println("Program loaded into memory.")
 
 	for p.index < len(p.memory) {
 		v := p.memory[p.index]
 		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
-		operatorMap[opcode(v)](&p, &r)
+		operatorMap[opcode(v)](&p, &r, &s)
 	}
 }

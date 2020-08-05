@@ -265,8 +265,8 @@ func TestStackPop(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if test.s.Pop() != test.expected {
-			t.Error("Got:", test.s.Pop(), "Expected:", test.expected)
+		if test.s.pop() != test.expected {
+			t.Error("Got:", test.s.pop(), "Expected:", test.expected)
 		}
 	}
 }
@@ -282,7 +282,7 @@ func TestStackPush(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.oldStack.Push(test.value)
+		test.oldStack.push(test.value)
 		if test.oldStack[1] != test.expected {
 			t.Error("Got:", test.oldStack[1], "Expected:", test.expected)
 		}

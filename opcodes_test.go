@@ -7,25 +7,24 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected uint16
 	}{
-		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, reg, 2},
-		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, reg, 1},
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 2},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 1},
 	}
 
 	for _, test := range tests {
-		add(&test.p, &test.reg)
+		add(&test.p, &test.r, &stack{})
 
-		// takes 3 args so index is incremented by 3
-		if test.p.index != 3 {
+		if test.p.index != 4 {
 			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
-		result := test.reg.Get(register0)
+		result := test.r.Get(register0)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
@@ -33,25 +32,24 @@ func TestAdd(t *testing.T) {
 }
 
 func TestEq(t *testing.T) {
-	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected uint16
 	}{
-		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, reg, 1},
-		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, reg, 0},
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 1},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 0},
 	}
 
 	for _, test := range tests {
-		eq(&test.p, &test.reg)
+		eq(&test.p, &test.r, &stack{})
 
-		// takes 3 args so index is incremented by 3
-		if test.p.index != 3 {
+		if test.p.index != 4 {
 			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
-		result := test.reg.Get(register0)
+		result := test.r.Get(register0)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
@@ -70,7 +68,7 @@ func TestJump(t *testing.T) {
 
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected int
 	}{
 		{program{index: 0, memory: []uint16{10, 11, 12}}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 11},
@@ -79,7 +77,7 @@ func TestJump(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		jump(&test.p, &test.reg)
+		jump(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
 		}
@@ -91,7 +89,7 @@ func TestJump(t *testing.T) {
 func TestJumpFalse(t *testing.T) {
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected int
 	}{
 		// i, a, b, a == 0, jump to b, return index of b
@@ -101,7 +99,7 @@ func TestJumpFalse(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		jumpFalse(&test.p, &test.reg)
+		jumpFalse(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
 		}
@@ -113,7 +111,7 @@ func TestJumpFalse(t *testing.T) {
 func TestJumpTrue(t *testing.T) {
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected int
 	}{
 		// i, a, b, a >= 0, jump to b, return index of b
@@ -123,7 +121,7 @@ func TestJumpTrue(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		jumpTrue(&test.p, &test.reg)
+		jumpTrue(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
 		}
@@ -133,14 +131,14 @@ func TestJumpTrue(t *testing.T) {
 func TestNoop(t *testing.T) {
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected int
 	}{
 		{program{index: 0, memory: []uint16{0, 1, 2}}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 1},
 	}
 
 	for _, test := range tests {
-		noop(&test.p, &test.reg)
+		noop(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
 		}
@@ -150,7 +148,7 @@ func TestNoop(t *testing.T) {
 func TestOut(t *testing.T) {
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
 		expected uint16
 	}{
 		{program{index: 0, memory: []uint16{0, 65}}, registers{0, 1, 2, 3, 4, 5, 6, 7}, 65},
@@ -162,7 +160,7 @@ func TestOut(t *testing.T) {
 		backupStdout := os.Stdout
 		os.Stdout = w
 
-		out(&test.p, &test.reg)
+		out(&test.p, &test.r, &stack{})
 
 		buf := make([]byte, 2)
 		_, err := r.Read(buf)
@@ -182,24 +180,25 @@ func TestOut(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
 		p        program
-		reg      registers
+		r        registers
+		s        stack
 		expected uint16
 	}{
-		{program{index: 0, memory: []uint16{0, register0, 42}}, reg, 42},
+		{program{index: 0, memory: []uint16{0, register0, 42}}, r, stack{}, 42},
 	}
 
 	for _, test := range tests {
 		register := test.p.memory[1]
-		set(&test.p, &test.reg)
+		set(&test.p, &test.r, &stack{})
 
-		if test.p.index != 2 {
+		if test.p.index != 3 {
 			t.Error("Got:", test.p.index, "Expected:", 2)
 		}
 
-		result := test.reg.Get(register)
+		result := test.r.Get(register)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
 		}
