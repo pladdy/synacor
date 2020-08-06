@@ -24,7 +24,7 @@ func TestAdd(t *testing.T) {
 			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
-		result := test.r.Get(register0)
+		result := test.r.get(register0)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
@@ -49,7 +49,7 @@ func TestEq(t *testing.T) {
 			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
-		result := test.r.Get(register0)
+		result := test.r.get(register0)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
@@ -179,6 +179,45 @@ func TestOut(t *testing.T) {
 	}
 }
 
+func TestPush(t *testing.T) {
+	tests := []struct {
+		p        program
+		s        stack
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, 14}}, stack{}, 14},
+	}
+
+	for _, test := range tests {
+		push(&test.p, &registers{}, &test.s)
+		result := test.s[0]
+
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestPop(t *testing.T) {
+	tests := []struct {
+		p        program
+		r        registers
+		s        stack
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0}}, registers{}, stack{14}, 14},
+	}
+
+	for _, test := range tests {
+		pop(&test.p, &test.r, &test.s)
+		result := test.r.get(register0)
+
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
 func TestSet(t *testing.T) {
 	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
@@ -198,7 +237,7 @@ func TestSet(t *testing.T) {
 			t.Error("Got:", test.p.index, "Expected:", 2)
 		}
 
-		result := test.r.Get(register)
+		result := test.r.get(register)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
 		}

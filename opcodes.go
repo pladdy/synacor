@@ -38,7 +38,7 @@ var operatorMap = map[opcode]operator{
 	opHalt: halt,
 	opSet:  set,
 	opPush: push,
-	opPop:  notImplemented,
+	opPop:  pop,
 	opEq:   eq,
 	opGt:   notImplemented,
 	opJmp:  jump,
@@ -59,31 +59,27 @@ var operatorMap = map[opcode]operator{
 	opNoop: noop,
 }
 
-// template
-// func bloop(p *program, r *registers, s *stack) {
-// 	// }
-
 // add: 9 a b c
 //  assign into <a> the sum of <b> and <c> (podulo 32768)
 func add(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
-	r.Set(a, b+c)
+	r.set(a, b+c)
 	p.index = p.index + 1
 }
 
 // eq: 4 a b c
-//   set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise
+//  .set <a> to 1 if <b> is equal to <c>;.set it to 0 otherwise
 func eq(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
 
 	if b == c {
-		r.Set(a, 1)
+		r.set(a, 1)
 	} else {
-		r.Set(a, 0)
+		r.set(a, 0)
 	}
 	p.index = p.index + 1
 }
@@ -151,6 +147,15 @@ func push(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
+// pop: 3 a
+//   remove the top element from the stack and write it into <a>; empty stack = error
+func pop(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := s.pop()
+	r.set(a, b)
+	p.index = p.index + 1
+}
+
 // set: 1 a b
 //   set register <a> to the value of <b>
 func set(p *program, r *registers, s *stack) {
@@ -158,7 +163,7 @@ func set(p *program, r *registers, s *stack) {
 	b := p.getNextRaw()
 
 	if isRegister(a) {
-		r.Set(a, b)
+		r.set(a, b)
 	}
 	p.index = p.index + 1
 }

@@ -205,7 +205,7 @@ func TestRegisterGet(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := test.reg.Get(test.index)
+		result := test.reg.get(test.index)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}
@@ -231,8 +231,8 @@ func TestRegisterSet(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.reg.Set(test.index, test.expected)
-		result := test.reg.Get(test.index)
+		test.reg.set(test.index, test.expected)
+		result := test.reg.get(test.index)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
 		}

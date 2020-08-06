@@ -38,7 +38,7 @@ func (p *program) getNext(r *registers) uint16 {
 
 	// what if the index is a register we want to set a value to?
 	if isRegister(value) {
-		value = r.Get(value)
+		value = r.get(value)
 	}
 	return value
 }
@@ -75,11 +75,11 @@ func (p *program) load(file string) {
 
 type registers [8]uint16
 
-func (r *registers) Get(register uint16) uint16 {
+func (r *registers) get(register uint16) uint16 {
 	return r[register%registerStart]
 }
 
-func (r *registers) Set(register uint16, value uint16) {
+func (r *registers) set(register uint16, value uint16) {
 	r[register%registerStart] = value
 }
 
