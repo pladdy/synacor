@@ -40,16 +40,16 @@ var operatorMap = map[opcode]operator{
 	opPush: push,
 	opPop:  pop,
 	opEq:   eq,
-	opGt:   notImplemented,
+	opGt:   gt,
 	opJmp:  jump,
 	opJt:   jumpTrue,
 	opJf:   jumpFalse,
 	opAdd:  add,
 	opMult: notImplemented,
 	opMod:  notImplemented,
-	opAnd:  notImplemented,
-	opOr:   notImplemented,
-	opNot:  notImplemented,
+	opAnd:  and,
+	opOr:   or,
+	opNot:  not,
 	opRmem: notImplemented,
 	opWmem: notImplemented,
 	opCall: notImplemented,
@@ -69,6 +69,16 @@ func add(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
+// and: 12 a b c
+//   stores into <a> the bitwise and of <b> and <c>
+func and(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	c := p.getNext(r)
+	r.set(a, b&c)
+	p.index = p.index + 1
+}
+
 // eq: 4 a b c
 //  .set <a> to 1 if <b> is equal to <c>;.set it to 0 otherwise
 func eq(p *program, r *registers, s *stack) {
@@ -76,7 +86,24 @@ func eq(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 
+	//fmt.Println("Eq, A:", a, "B:", b, "C:", c)
+
 	if b == c {
+		r.set(a, 1)
+	} else {
+		r.set(a, 0)
+	}
+	p.index = p.index + 1
+}
+
+// gt: 5 a b c
+//   set <a> to 1 if <b> is greater than <c>; set it to 0 otherwise
+func gt(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	c := p.getNext(r)
+
+	if b > c {
 		r.set(a, 1)
 	} else {
 		r.set(a, 0)
@@ -128,8 +155,27 @@ func noop(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
+// not: 14 a b
+//   stores 15-bit bitwise inverse of <b> in <a>
+func not(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	r.set(a, ^b%modulo)
+	p.index = p.index + 1
+}
+
 func notImplemented(p *program, r *registers, s *stack) {
 	panic(fmt.Sprintf("opCode %d not implemented", p.memory[p.index]))
+}
+
+// or: 13 a b c
+//   stores into <a> the bitwise or of <b> and <c>
+func or(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	c := p.getNext(r)
+	r.set(a, b|c)
+	p.index = p.index + 1
 }
 
 // out: 19 a

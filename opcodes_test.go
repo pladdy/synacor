@@ -21,6 +21,31 @@ func TestAdd(t *testing.T) {
 		add(&test.p, &test.r, &stack{})
 
 		if test.p.index != 4 {
+			t.Error("Got:", test.p.index, "Expected:", 4)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestAnd(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 1},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 0},
+	}
+
+	for _, test := range tests {
+		and(&test.p, &test.r, &stack{})
+
+		if test.p.index != 4 {
 			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
@@ -44,6 +69,31 @@ func TestEq(t *testing.T) {
 
 	for _, test := range tests {
 		eq(&test.p, &test.r, &stack{})
+
+		if test.p.index != 4 {
+			t.Error("Got:", test.p.index, "Expected:", 3)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestGt(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 0},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 1},
+	}
+
+	for _, test := range tests {
+		gt(&test.p, &test.r, &stack{})
 
 		if test.p.index != 4 {
 			t.Error("Got:", test.p.index, "Expected:", 3)
@@ -141,6 +191,56 @@ func TestNoop(t *testing.T) {
 		noop(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestNot(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 2, 1}}, r, 32765},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 32766},
+	}
+
+	for _, test := range tests {
+		not(&test.p, &test.r, &stack{})
+
+		if test.p.index != 3 {
+			t.Error("Got:", test.p.index, "Expected:", 3)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestOr(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 2, 1}}, r, 3},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 1},
+	}
+
+	for _, test := range tests {
+		or(&test.p, &test.r, &stack{})
+
+		if test.p.index != 4 {
+			t.Error("Got:", test.p.index, "Expected:", 4)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
 		}
 	}
 }
