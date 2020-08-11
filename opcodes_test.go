@@ -15,6 +15,7 @@ func TestAdd(t *testing.T) {
 	}{
 		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 2},
 		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 1},
+		{program{index: 0, memory: []uint16{0, register0, 32766, 7}}, r, 5},
 	}
 
 	for _, test := range tests {
@@ -56,6 +57,30 @@ func TestAnd(t *testing.T) {
 	}
 }
 
+func TestCall(t *testing.T) {
+	tests := []struct {
+		p        program
+		s        stack
+		expected int
+	}{
+		{program{index: 0, memory: []uint16{0, 12}}, stack{}, 12},
+		{program{index: 0, memory: []uint16{0, 15}}, stack{}, 15},
+	}
+
+	for _, test := range tests {
+		call(&test.p, &registers{}, &test.s)
+
+		if test.p.index != test.expected {
+			t.Error("Got:", test.p.index, "Expected:", test.expected)
+		}
+
+		result := test.s.pop()
+		if int(result) != 2 {
+			t.Error("Got:", result, "Expected:", 2)
+		}
+	}
+}
+
 func TestEq(t *testing.T) {
 	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
@@ -71,7 +96,7 @@ func TestEq(t *testing.T) {
 		eq(&test.p, &test.r, &stack{})
 
 		if test.p.index != 4 {
-			t.Error("Got:", test.p.index, "Expected:", 3)
+			t.Error("Got:", test.p.index, "Expected:", 4)
 		}
 
 		result := test.r.get(register0)
@@ -174,6 +199,59 @@ func TestJumpTrue(t *testing.T) {
 		jumpTrue(&test.p, &test.r, &stack{})
 		if test.p.index != test.expected {
 			t.Error("Got:", test.p.index, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestMod(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 0},
+		{program{index: 0, memory: []uint16{0, register0, 1, 2}}, r, 1},
+		{program{index: 0, memory: []uint16{0, register0, 32766, 7}}, r, 6},
+	}
+
+	for _, test := range tests {
+		mod(&test.p, &test.r, &stack{})
+
+		if test.p.index != 4 {
+			t.Error("Got:", test.p.index, "Expected:", 4)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestMult(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}}, r, 1},
+		{program{index: 0, memory: []uint16{0, register0, 1, 0}}, r, 0},
+		{program{index: 0, memory: []uint16{0, register0, 4, 9}}, r, 36},
+		{program{index: 0, memory: []uint16{0, register0, 32766, 7}}, r, 32754},
+	}
+
+	for _, test := range tests {
+		mult(&test.p, &test.r, &stack{})
+
+		if test.p.index != 4 {
+			t.Error("Got:", test.p.index, "Expected:", 4)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
 		}
 	}
 }
@@ -318,6 +396,52 @@ func TestPop(t *testing.T) {
 	}
 }
 
+func TestRet(t *testing.T) {
+	tests := []struct {
+		p        program
+		s        stack
+		expected int
+	}{
+		{program{index: 0, memory: []uint16{0, 12}}, stack{27}, 27},
+		{program{index: 0, memory: []uint16{0, 15}}, stack{14}, 14},
+	}
+
+	for _, test := range tests {
+		ret(&test.p, &registers{}, &test.s)
+
+		if test.p.index != test.expected {
+			t.Error("Got:", test.p.index, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestRmem(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		s        stack
+		expected int
+	}{
+		{program{index: 0, memory: []uint16{0, 2, 2, 3}}, r, stack{27}, 0},
+		{program{index: 0, memory: []uint16{0, 2, 2, 4}}, r, stack{14}, 0},
+	}
+
+	for _, test := range tests {
+		register := test.p.memory[1]
+		rmem(&test.p, &registers{}, &test.s)
+
+		if test.p.index != 3 {
+			t.Error("Got:", test.p.index, "Expected:", 3)
+		}
+
+		result := test.r.get(register)
+		if int(result) != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
+		}
+	}
+}
+
 func TestSet(t *testing.T) {
 	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
 	tests := []struct {
@@ -334,11 +458,38 @@ func TestSet(t *testing.T) {
 		set(&test.p, &test.r, &stack{})
 
 		if test.p.index != 3 {
-			t.Error("Got:", test.p.index, "Expected:", 2)
+			t.Error("Got:", test.p.index, "Expected:", 3)
 		}
 
 		result := test.r.get(register)
 		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
+		}
+	}
+}
+
+func TestWmem(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		s        stack
+		expected int
+	}{
+		{program{index: 0, memory: []uint16{0, 2, 2, 3}}, r, stack{27}, 0},
+		{program{index: 0, memory: []uint16{0, 2, 2, 4}}, r, stack{14}, 0},
+	}
+
+	for _, test := range tests {
+		register := test.p.memory[1]
+		wmem(&test.p, &registers{}, &test.s)
+
+		if test.p.index != 3 {
+			t.Error("Got:", test.p.index, "Expected:", 3)
+		}
+
+		result := test.r.get(register)
+		if int(result) != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected, "Register:", register)
 		}
 	}

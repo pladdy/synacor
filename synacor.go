@@ -33,8 +33,7 @@ type program struct {
 
 // This returns the value and shifts the provided index
 func (p *program) getNext(r *registers) uint16 {
-	p.index = p.index + 1
-	value := p.memory[p.index]
+	value := p.getNextRaw()
 
 	// what if the index is a register we want to set a value to?
 	if isRegister(value) {
@@ -47,6 +46,7 @@ func (p *program) getNext(r *registers) uint16 {
 // if the value is a register.
 func (p *program) getNextRaw() uint16 {
 	p.index = p.index + 1
+	// fmt.Println("  next index:", p.index, "value:", p.memory[p.index])
 	return p.memory[p.index]
 }
 
@@ -80,6 +80,10 @@ func (r *registers) get(register uint16) uint16 {
 }
 
 func (r *registers) set(register uint16, value uint16) {
+	if isRegister(value) {
+		fmt.Println("Value is a register:", value)
+		os.Exit(1)
+	}
 	r[register%registerStart] = value
 }
 
@@ -134,7 +138,7 @@ func main() {
 
 	for p.index < len(p.memory) {
 		v := p.memory[p.index]
-		fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
+		// fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
 		operatorMap[opcode(v)](&p, &r, &s)
 	}
 }

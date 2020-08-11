@@ -45,15 +45,15 @@ var operatorMap = map[opcode]operator{
 	opJt:   jumpTrue,
 	opJf:   jumpFalse,
 	opAdd:  add,
-	opMult: notImplemented,
-	opMod:  notImplemented,
+	opMult: mult,
+	opMod:  mod,
 	opAnd:  and,
 	opOr:   or,
 	opNot:  not,
-	opRmem: notImplemented,
-	opWmem: notImplemented,
-	opCall: notImplemented,
-	opRet:  notImplemented,
+	opRmem: rmem,
+	opWmem: wmem,
+	opCall: call,
+	opRet:  ret,
 	opOut:  out,
 	opIn:   notImplemented,
 	opNoop: noop,
@@ -65,7 +65,7 @@ func add(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
-	r.set(a, b+c)
+	r.set(a, (b+c)%modulo)
 	p.index = p.index + 1
 }
 
@@ -79,14 +79,22 @@ func and(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
+// call: 17 a
+//   write the address of the next instruction to the stack and jump to <a>
+func call(p *program, r *registers, s *stack) {
+	a := p.getNext(r)
+	s.push(uint16(p.index) + 1)
+	// fmt.Println("Call, A:", a, "Stack push:", p.index+1)
+	p.index = int(a)
+}
+
 // eq: 4 a b c
 //  .set <a> to 1 if <b> is equal to <c>;.set it to 0 otherwise
 func eq(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
-
-	//fmt.Println("Eq, A:", a, "B:", b, "C:", c)
+	// fmt.Println("Eq, A:", a, "B:", b, "C:", c)
 
 	if b == c {
 		r.set(a, 1)
@@ -117,10 +125,17 @@ func halt(p *program, r *registers, s *stack) {
 	os.Exit(0)
 }
 
+// in: 20 a
+//   read a character from the terminal and write its ascii code to <a>; it can be assumed that once input starts, it will continue until a newline is encountered; this means that you can safely read whole lines from the keyboard and trust that they will be fully read
+func in(p *program, r *registers, s *stack) {
+
+}
+
 // jmp: 6 a
 //   jump to <a>
 func jump(p *program, r *registers, s *stack) {
 	p.index = int(p.getNext(r))
+	// fmt.Println("Jump: to:", p.index)
 }
 
 // jf: 8 a b
@@ -134,6 +149,7 @@ func jumpFalse(p *program, r *registers, s *stack) {
 	} else {
 		p.index = p.index + 1
 	}
+	// fmt.Println("JumpFalse, a:", a, "b:", b, "index:", p.index)
 }
 
 // jt: 7 a b
@@ -147,6 +163,27 @@ func jumpTrue(p *program, r *registers, s *stack) {
 	} else {
 		p.index = p.index + 1
 	}
+}
+
+// mod: 11 a b c
+//   store into <a> the remainder of <b> divided by <c>
+func mod(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	c := p.getNext(r)
+	r.set(a, b%c)
+	// fmt.Println("Mod, A:", a, "B:", b, "C:", c, "Setting:", b%c)
+	p.index = p.index + 1
+}
+
+// mult: 10 a b c
+//   store into <a> the product of <b> and <c> (modulo 32768)
+func mult(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	c := p.getNext(r)
+	r.set(a, (b*c)%modulo)
+	p.index = p.index + 1
 }
 
 // noop: 21
@@ -202,14 +239,49 @@ func pop(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
 }
 
+// ret: 18
+//   remove the top element from the stack and jump to it; empty stack = halt
+func ret(p *program, r *registers, s *stack) {
+	if s.isEmpty() {
+		halt(p, r, s)
+	}
+
+	a := s.pop()
+	// fmt.Println("Ret, a:", a)
+	p.index = int(a)
+}
+
+// rmem: 15 a b
+//   read memory at address <b> and write it to <a>
+func rmem(p *program, r *registers, s *stack) {
+	a := p.getNextRaw()
+	b := p.getNext(r)
+	m := p.memory[b]
+
+	// fmt.Println("Rmem, A:", a, "B:", b, "M:", m)
+	r.set(a, m)
+	p.index = p.index + 1
+}
+
 // set: 1 a b
 //   set register <a> to the value of <b>
 func set(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
-	b := p.getNextRaw()
+	b := p.getNext(r)
 
 	if isRegister(a) {
 		r.set(a, b)
 	}
+	p.index = p.index + 1
+}
+
+// wmem: 16 a b
+//   write the value from <b> into memory at address <a>
+func wmem(p *program, r *registers, s *stack) {
+	a := p.getNext(r)
+	b := p.getNext(r)
+	p.memory[a] = b
+
+	// fmt.Println("Wmem, A:", a, "B:", b)
 	p.index = p.index + 1
 }
