@@ -29,6 +29,7 @@ const (
 type program struct {
 	index  int
 	memory []uint16
+	input  []uint16
 }
 
 // This returns the value and shifts the provided index
@@ -48,6 +49,22 @@ func (p *program) getNextRaw() uint16 {
 	p.index = p.index + 1
 	// fmt.Println("  next index:", p.index, "value:", p.memory[p.index])
 	return p.memory[p.index]
+}
+
+func (p *program) getChars() error {
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("oh no!:", err)
+		fmt.Println(input)
+		return err
+	}
+
+	for _, c := range input {
+		p.input = append(p.input, uint16(c))
+	}
+	fmt.Println("Input captured")
+	return nil
 }
 
 func (p *program) load(file string) {
@@ -81,7 +98,7 @@ func (r *registers) get(register uint16) uint16 {
 
 func (r *registers) set(register uint16, value uint16) {
 	if isRegister(value) {
-		fmt.Println("Value is a register:", value)
+		// fmt.Println("Value is a register:", value)
 		os.Exit(1)
 	}
 	r[register%registerStart] = value

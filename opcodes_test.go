@@ -131,6 +131,30 @@ func TestGt(t *testing.T) {
 	}
 }
 
+func TestInRegisters(t *testing.T) {
+	r := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		p        program
+		r        registers
+		expected uint16
+	}{
+		{program{index: 0, memory: []uint16{0, register0, 1, 1}, input: []uint16{101}}, r, 101},
+	}
+
+	for _, test := range tests {
+		in(&test.p, &test.r, &stack{})
+
+		if test.p.index != 2 {
+			t.Error("Got:", test.p.index, "Expected:", 2)
+		}
+
+		result := test.r.get(register0)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
 // Jump will get the jump location from the next memory location (like all optimize
 // functions do), but returns it decremented (since the VM loop will immediately
 // loop to the next iteration).

@@ -55,7 +55,7 @@ var operatorMap = map[opcode]operator{
 	opCall: call,
 	opRet:  ret,
 	opOut:  out,
-	opIn:   notImplemented,
+	opIn:   in,
 	opNoop: noop,
 }
 
@@ -126,9 +126,27 @@ func halt(p *program, r *registers, s *stack) {
 }
 
 // in: 20 a
-//   read a character from the terminal and write its ascii code to <a>; it can be assumed that once input starts, it will continue until a newline is encountered; this means that you can safely read whole lines from the keyboard and trust that they will be fully read
-func in(p *program, r *registers, s *stack) {
+//   read a character from the terminal and write its ascii code to <a>;
+//   it can be assumed that once input starts, it will continue until a newline
+//   is encountered; this means that you can safely read whole lines from the
+//   keyboard and trust that they will be fully read
 
+func in(p *program, r *registers, s *stack) {
+	if len(p.input) == 0 {
+		if err := p.getChars(); err != nil {
+			// fmt.Println("Error from p.getChars():", err)
+			halt(p, r, s)
+		}
+	}
+
+	a := p.getNextRaw()
+
+	b := p.input[0]
+	p.input = p.input[1:]
+	r.set(a, b)
+
+	// fmt.Println("In, A:", a, "Index:", p.index, "Char:", b, "Char (str):", string(b))
+	p.index = p.index + 1
 }
 
 // jmp: 6 a
