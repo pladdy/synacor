@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"os"
 	"testing"
 )
 
@@ -62,16 +63,6 @@ func TestIsRegister(t *testing.T) {
 	}
 }
 
-func TestLoadProgram(t *testing.T) {
-	memory := loadProgram("challenge.bin")
-	memoryLen := len(memory)
-	expected := 30050
-
-	if len(memory) != expected {
-		t.Error("Got:", memoryLen, "Expected:", expected)
-	}
-}
-
 func TestOpCodes(t *testing.T) {
 	if opHalt != 0 {
 		t.Error("Opcode halt should be 0")
@@ -81,6 +72,79 @@ func TestOpCodes(t *testing.T) {
 	}
 	if opNoop != 21 {
 		t.Error("Opcode noop should be 21")
+	}
+}
+
+func TestProgramGetNext(t *testing.T) {
+	tests := []struct {
+		p             program
+		reg           registers
+		expectedIndex int
+		expectedValue uint16
+	}{
+		{program{index: 0, memory: []uint16{0, 1}}, registers{}, 1, 1},
+		{program{index: 1, memory: []uint16{0, 1, 2}}, registers{}, 2, 2},
+		{program{index: 0, memory: []uint16{0, register0}}, registers{42}, 1, 42},
+	}
+
+	for _, test := range tests {
+		result := test.p.getNext(&test.reg)
+
+		if test.p.index != test.expectedIndex {
+			t.Error("Got:", test.p.index, "Expected:", test.expectedIndex)
+		}
+		if result != test.expectedValue {
+			t.Error("Got:", result, "Expected:", test.expectedValue)
+		}
+	}
+}
+
+func TestProgramGetNextRaw(t *testing.T) {
+	tests := []struct {
+		p             program
+		expectedIndex int
+		expectedValue uint16
+	}{
+		{program{index: 0, memory: []uint16{0, 1}}, 1, 1},
+		{program{index: 1, memory: []uint16{0, 1, 2}}, 2, 2},
+		{program{index: 0, memory: []uint16{0, register0}}, 1, register0},
+	}
+
+	for _, test := range tests {
+		result := test.p.getNextRaw()
+
+		if test.p.index != test.expectedIndex {
+			t.Error("Got:", test.p.index, "Expected:", test.expectedIndex)
+		}
+		if result != test.expectedValue {
+			t.Error("Got:", result, "Expected:", test.expectedValue)
+		}
+	}
+}
+
+func TestProgramLoad(t *testing.T) {
+	file, err := os.Create("test.bin")
+	if err != nil {
+		t.Error("Failed to create test file:", err)
+	}
+
+	err = binary.Write(file, binary.LittleEndian, uint16(19))
+	if err != nil {
+		t.Error("Failed to write to test file", err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		t.Error("Failed to close file", err)
+	}
+
+	p := program{}
+	p.load("test.bin")
+	memoryLen := len(p.memory)
+	expected := 1
+
+	if len(p.memory) != expected {
+		t.Error("Got:", memoryLen, "Expected:", expected)
 	}
 }
 
@@ -141,9 +205,86 @@ func TestRegisterGet(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := test.reg.Get(test.index)
+		result := test.reg.get(test.index)
 		if result != test.expected {
 			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestRegisterSet(t *testing.T) {
+	reg := registers{0, 0, 0, 0, 0, 0, 0, 0}
+	tests := []struct {
+		reg      registers
+		index    uint16
+		expected uint16
+	}{
+		{reg, 0, 42},
+		{reg, register0, 13},
+		{reg, register1, 12},
+		{reg, register2, 29},
+		{reg, register3, 101},
+		{reg, register4, 4},
+		{reg, register5, 99},
+		{reg, register6, 5},
+		{reg, register7, 1},
+	}
+
+	for _, test := range tests {
+		test.reg.set(test.index, test.expected)
+		result := test.reg.get(test.index)
+		if result != test.expected {
+			t.Error("Got:", result, "Expected:", test.expected)
+		}
+	}
+}
+
+func TestStackIsEmpty(t *testing.T) {
+	tests := []struct {
+		s        stack
+		expected bool
+	}{
+		{stack{0}, false},
+		{stack{}, true},
+	}
+
+	for _, test := range tests {
+		if test.s.isEmpty() != test.expected {
+			t.Error("Got:", test.s.isEmpty(), "Expected:", test.expected)
+		}
+	}
+}
+
+func TestStackPop(t *testing.T) {
+	tests := []struct {
+		s        stack
+		expected uint16
+	}{
+		{stack{12}, 12},
+		{stack{}, 0},
+	}
+
+	for _, test := range tests {
+		if test.s.pop() != test.expected {
+			t.Error("Got:", test.s.pop(), "Expected:", test.expected)
+		}
+	}
+}
+
+func TestStackPush(t *testing.T) {
+	tests := []struct {
+		oldStack stack
+		value    uint16
+		expected uint16
+	}{
+		{stack{12}, 12, 12},
+		{stack{0}, 0, 0},
+	}
+
+	for _, test := range tests {
+		test.oldStack.push(test.value)
+		if test.oldStack[1] != test.expected {
+			t.Error("Got:", test.oldStack[1], "Expected:", test.expected)
 		}
 	}
 }
