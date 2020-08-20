@@ -1,4 +1,4 @@
-package main
+package synacor
 
 import (
 	"bytes"
@@ -127,6 +127,7 @@ func TestProgramLoad(t *testing.T) {
 	if err != nil {
 		t.Error("Failed to create test file:", err)
 	}
+	defer os.Remove("test.bin")
 
 	err = binary.Write(file, binary.LittleEndian, uint16(19))
 	if err != nil {

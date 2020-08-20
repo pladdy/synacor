@@ -1,9 +1,8 @@
-package main
+package synacor
 
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -55,15 +54,13 @@ func (p *program) getChars() error {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("oh no!:", err)
-		fmt.Println(input)
 		return err
 	}
 
 	for _, c := range input {
 		p.input = append(p.input, uint16(c))
 	}
-	fmt.Println("Input captured")
+	// fmt.Println("Input captured")
 	return nil
 }
 
@@ -144,18 +141,4 @@ func readNext(reader io.Reader) (uint16, error) {
 		return 0, err
 	}
 	return binary.LittleEndian.Uint16(buf), nil
-}
-
-func main() {
-	p := program{}
-	r := registers{}
-	s := stack{}
-	p.load("./challenge.bin")
-	fmt.Println("Program loaded into memory.")
-
-	for p.index < len(p.memory) {
-		v := p.memory[p.index]
-		// fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
-		operatorMap[opcode(v)](&p, &r, &s)
-	}
 }
