@@ -1,4 +1,4 @@
-package main
+package synacor
 
 import (
 	"fmt"
@@ -89,7 +89,7 @@ func call(p *program, r *registers, s *stack) {
 }
 
 // eq: 4 a b c
-//  .set <a> to 1 if <b> is equal to <c>;.set it to 0 otherwise
+//   set <a> to 1 if <b> is equal to <c>;.set it to 0 otherwise
 func eq(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
@@ -217,10 +217,6 @@ func not(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	r.set(a, ^b%modulo)
 	p.index = p.index + 1
-}
-
-func notImplemented(p *program, r *registers, s *stack) {
-	panic(fmt.Sprintf("opCode %d not implemented", p.memory[p.index]))
 }
 
 // or: 13 a b c

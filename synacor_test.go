@@ -1,4 +1,4 @@
-package main
+package synacor
 
 import (
 	"bytes"
@@ -75,7 +75,7 @@ func TestOpCodes(t *testing.T) {
 	}
 }
 
-func TestProgramGetNext(t *testing.T) {
+func TestprogramGetNext(t *testing.T) {
 	tests := []struct {
 		p             program
 		reg           registers
@@ -99,7 +99,7 @@ func TestProgramGetNext(t *testing.T) {
 	}
 }
 
-func TestProgramGetNextRaw(t *testing.T) {
+func TestprogramGetNextRaw(t *testing.T) {
 	tests := []struct {
 		p             program
 		expectedIndex int
@@ -122,11 +122,12 @@ func TestProgramGetNextRaw(t *testing.T) {
 	}
 }
 
-func TestProgramLoad(t *testing.T) {
+func TestprogramLoad(t *testing.T) {
 	file, err := os.Create("test.bin")
 	if err != nil {
 		t.Error("Failed to create test file:", err)
 	}
+	defer os.Remove("test.bin")
 
 	err = binary.Write(file, binary.LittleEndian, uint16(19))
 	if err != nil {
