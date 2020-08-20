@@ -75,7 +75,7 @@ func TestOpCodes(t *testing.T) {
 	}
 }
 
-func TestprogramGetNext(t *testing.T) {
+func TestProgramGetNext(t *testing.T) {
 	tests := []struct {
 		p             program
 		reg           registers
@@ -99,7 +99,7 @@ func TestprogramGetNext(t *testing.T) {
 	}
 }
 
-func TestprogramGetNextRaw(t *testing.T) {
+func TestProgramGetNextRaw(t *testing.T) {
 	tests := []struct {
 		p             program
 		expectedIndex int
@@ -122,7 +122,7 @@ func TestprogramGetNextRaw(t *testing.T) {
 	}
 }
 
-func TestprogramLoad(t *testing.T) {
+func TestProgramLoad(t *testing.T) {
 	file, err := os.Create("test.bin")
 	if err != nil {
 		t.Error("Failed to create test file:", err)
