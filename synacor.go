@@ -8,6 +8,52 @@ import (
 	"path/filepath"
 )
 
+// TODO: fmt.Println -> logs?
+
+// Machine which represents a program (in memory) that can be run.
+type Machine struct {
+	Program   *program
+	Stack     *stack
+	Registers *registers
+}
+
+// NewMachine returns a new Machine type.
+func NewMachine() Machine {
+	return Machine{&program{}, &stack{}, &registers{}}
+}
+
+// Load takes a path to a binary and loads it into the Machine
+func (m Machine) Load(s string) {
+	m.Program.load(s)
+}
+
+// NextOp returns the
+//   - name of the next operation
+//   - code of the next operation
+//   - arguments for the next operation
+func (m Machine) NextOp() (name string, opCode uint16, args []uint16) {
+	p := m.Program
+	oc := opcode(p.memory[p.index])
+	properties := operatorPropertyMap[oc]
+
+	for i := 0; i < properties.args; i++ {
+		args = append(args, p.getNextRaw())
+	}
+	p.index = p.index + 1
+
+	return properties.name, uint16(oc), args
+}
+
+// Run the loaded program.
+func (m Machine) Run() {
+	p := m.Program
+	for p.index < len(p.memory) {
+		v := opcode(p.memory[p.index])
+		//fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
+		operatorFunctionMap[v](p, m.Registers, m.Stack)
+	}
+}
+
 const maxMemory = 32767         // var memory [2 << 14]uint16
 const maxAllowedLiteral = 32767 // 2 << 14 - 1
 const modulo = 32768
@@ -77,7 +123,6 @@ func (p *program) load(file string) {
 		if err == io.EOF {
 			break
 		}
-
 		p.memory = append(p.memory, le)
 		i = i + 1
 	}

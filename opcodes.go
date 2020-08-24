@@ -34,7 +34,7 @@ const (
 
 type operator func(p *program, r *registers, s *stack)
 
-var operatorMap = map[opcode]operator{
+var operatorFunctionMap = map[opcode]operator{
 	opHalt: halt,
 	opSet:  set,
 	opPush: push,
@@ -57,6 +57,36 @@ var operatorMap = map[opcode]operator{
 	opOut:  out,
 	opIn:   in,
 	opNoop: noop,
+}
+
+type operatorProperty struct {
+	name string
+	args int
+}
+
+var operatorPropertyMap = map[opcode]operatorProperty{
+	opAdd:  {"add", 3},
+	opAnd:  {"and", 3},
+	opCall: {"call", 1},
+	opEq:   {"eq", 3},
+	opGt:   {"gt", 3},
+	opHalt: {"halt", 0},
+	opIn:   {"in", 1},
+	opJmp:  {"jump", 1},
+	opJt:   {"jumpFalse", 2},
+	opJf:   {"jumpTrue", 2},
+	opMod:  {"mod", 3},
+	opMult: {"mult", 3},
+	opNoop: {"noop", 0},
+	opNot:  {"not", 2},
+	opOr:   {"or", 3},
+	opOut:  {"out", 1},
+	opPop:  {"pop", 1},
+	opPush: {"push", 1},
+	opRet:  {"ret", 0},
+	opRmem: {"rmem", 2},
+	opSet:  {"set", 2},
+	opWmem: {"wmem", 2},
 }
 
 // add: 9 a b c

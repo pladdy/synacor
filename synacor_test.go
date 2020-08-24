@@ -8,6 +8,93 @@ import (
 	"testing"
 )
 
+func writeTest(file io.Writer) {
+	binary.Write(file, binary.LittleEndian, uint16(19))
+	binary.Write(file, binary.LittleEndian, uint16(84))
+	binary.Write(file, binary.LittleEndian, uint16(19))
+	binary.Write(file, binary.LittleEndian, uint16(101))
+	binary.Write(file, binary.LittleEndian, uint16(19))
+	binary.Write(file, binary.LittleEndian, uint16(115))
+	binary.Write(file, binary.LittleEndian, uint16(19))
+	binary.Write(file, binary.LittleEndian, uint16(116))
+	binary.Write(file, binary.LittleEndian, uint16(19))
+	binary.Write(file, binary.LittleEndian, uint16(10))
+}
+
+func TestNewMachine(t *testing.T) {
+	_ = NewMachine()
+}
+
+func TestMachineLoad(t *testing.T) {
+	file, err := os.Create("test.bin")
+	if err != nil {
+		t.Error("Failed to create test file:", err)
+	}
+	defer os.Remove("test.bin")
+
+	writeTest(file)
+
+	err = file.Close()
+	if err != nil {
+		t.Error("Failed to close file", err)
+	}
+
+	m := NewMachine()
+	m.Load("test.bin")
+}
+
+func TestMachineNextOp(t *testing.T) {
+	file, err := os.Create("test.bin")
+	if err != nil {
+		t.Error("Failed to create test file:", err)
+	}
+	defer os.Remove("test.bin")
+
+	writeTest(file)
+
+	err = file.Close()
+	if err != nil {
+		t.Error("Failed to close file", err)
+	}
+
+	m := NewMachine()
+	m.Load("test.bin")
+	name, code, args := m.NextOp()
+
+	if name != "out" {
+		t.Error("Got:", name, "Expected:", "out")
+	}
+	if code != 19 {
+		t.Error("Got:", code, "Expected:", 19)
+	}
+
+	if len(args) != 1 {
+		t.Error("Got:", len(args), "Expected:", 1)
+	}
+	if args[0] != 84 {
+		t.Error("Got:", args[0], "Expected:", 84)
+	}
+}
+
+func TestMachineRun(t *testing.T) {
+	file, err := os.Create("test.bin")
+	if err != nil {
+		t.Error("Failed to create test file:", err)
+	}
+	defer os.Remove("test.bin")
+
+	writeTest(file)
+
+	err = file.Close()
+	if err != nil {
+		t.Error("Failed to close file", err)
+	}
+
+	m := NewMachine()
+	m.Load("test.bin")
+	m.Run()
+}
+
 func TestIsValid(t *testing.T) {
 	tests := []struct {
 		value    uint16
