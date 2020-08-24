@@ -1,4 +1,4 @@
-module github.com/pladdypants/synacor
+module github.com/pladdy/synacor
 
 go 1.14
 
