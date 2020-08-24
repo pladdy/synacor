@@ -8,6 +8,21 @@ import (
 	"testing"
 )
 
+func createTestBinary() string {
+	file, err := os.Create("test.bin")
+	if err != nil {
+		panic(err)
+	}
+
+	writeTest(file)
+
+	err = file.Close()
+	if err != nil {
+		panic(err)
+	}
+	return "test.bin"
+}
+
 func writeTest(file io.Writer) {
 	binary.Write(file, binary.LittleEndian, uint16(19))
 	binary.Write(file, binary.LittleEndian, uint16(84))
@@ -25,40 +40,38 @@ func TestNewMachine(t *testing.T) {
 	_ = NewMachine()
 }
 
-func TestMachineLoad(t *testing.T) {
-	file, err := os.Create("test.bin")
-	if err != nil {
-		t.Error("Failed to create test file:", err)
-	}
-	defer os.Remove("test.bin")
-
-	writeTest(file)
-
-	err = file.Close()
-	if err != nil {
-		t.Error("Failed to close file", err)
-	}
+func TestMachineIsEOP(t *testing.T) {
+	testBinary := createTestBinary()
+	defer os.Remove(testBinary)
 
 	m := NewMachine()
-	m.Load("test.bin")
+	m.Load(testBinary)
+
+	i := 0
+	for m.HasMoreOps() {
+		m.NextOp()
+		i++
+	}
+
+	if i != 5 {
+		t.Error("Got:", i, "Expected:", 5)
+	}
+}
+
+func TestMachineLoad(t *testing.T) {
+	testBinary := createTestBinary()
+	defer os.Remove(testBinary)
+
+	m := NewMachine()
+	m.Load(testBinary)
 }
 
 func TestMachineNextOp(t *testing.T) {
-	file, err := os.Create("test.bin")
-	if err != nil {
-		t.Error("Failed to create test file:", err)
-	}
-	defer os.Remove("test.bin")
-
-	writeTest(file)
-
-	err = file.Close()
-	if err != nil {
-		t.Error("Failed to close file", err)
-	}
+	testBinary := createTestBinary()
+	defer os.Remove(testBinary)
 
 	m := NewMachine()
-	m.Load("test.bin")
+	m.Load(testBinary)
 	name, code, args := m.NextOp()
 
 	if name != "out" {
@@ -77,21 +90,11 @@ func TestMachineNextOp(t *testing.T) {
 }
 
 func TestMachineRun(t *testing.T) {
-	file, err := os.Create("test.bin")
-	if err != nil {
-		t.Error("Failed to create test file:", err)
-	}
-	defer os.Remove("test.bin")
-
-	writeTest(file)
-
-	err = file.Close()
-	if err != nil {
-		t.Error("Failed to close file", err)
-	}
+	testBinary := createTestBinary()
+	defer os.Remove(testBinary)
 
 	m := NewMachine()
-	m.Load("test.bin")
+	m.Load(testBinary)
 	m.Run()
 }
 

@@ -22,6 +22,14 @@ func NewMachine() Machine {
 	return Machine{&program{}, &stack{}, &registers{}}
 }
 
+// HasMoreOps returns true if Machine has more operations to run.
+func (m Machine) HasMoreOps() bool {
+	if m.Program.index < len(m.Program.memory) {
+		return true
+	}
+	return false
+}
+
 // Load takes a path to a binary and loads it into the Machine
 func (m Machine) Load(s string) {
 	m.Program.load(s)

@@ -12,12 +12,11 @@ cover: coverage.txt
 coverage.txt:
 	$(TEST) -coverprofile=$@ -covermode=atomic
 
+dasm:
+	go run cmd/dasm/main.go
+
 docs:
 	@go doc
-
-# TODO: implement with dasm app
-# dump:
-# 	go run cmd/dump.go
 
 gosec:
 	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b ~/bin v2.3.0
@@ -33,10 +32,6 @@ lint:
 	go vet
 	gosec ./...
 
-# TODO: Re-enable with cmd apps
-# run:
-# 	go run $(GOFILES)
-
 test:
 	$(TEST)
 
@@ -46,3 +41,6 @@ ifdef test
 else
 	@echo Syntax is 'make $@ test=<test name>'
 endif
+
+vm:
+	go run cmd/vm/main.go
