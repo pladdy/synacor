@@ -43,4 +43,4 @@ else
 endif
 
 vm:
-	go run cmd/vm/main.go
+	go run cmd/vm/main.go 2> vm.log

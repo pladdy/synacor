@@ -72,9 +72,9 @@ var operatorPropertyMap = map[opcode]operatorProperty{
 	opGt:   {"gt", 3},
 	opHalt: {"halt", 0},
 	opIn:   {"in", 1},
-	opJmp:  {"jump", 1},
-	opJt:   {"jumpFalse", 2},
-	opJf:   {"jumpTrue", 2},
+	opJmp:  {"jmp", 1},
+	opJt:   {"jf", 2},
+	opJf:   {"jt", 2},
 	opMod:  {"mod", 3},
 	opMult: {"mult", 3},
 	opNoop: {"noop", 0},
@@ -96,6 +96,7 @@ func add(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.set(a, (b+c)%modulo)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, (b+c)%modulo)
 	p.index = p.index + 1
 }
 
@@ -106,6 +107,7 @@ func and(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.set(a, b&c)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, b&c)
 	p.index = p.index + 1
 }
 
@@ -114,7 +116,7 @@ func and(p *program, r *registers, s *stack) {
 func call(p *program, r *registers, s *stack) {
 	a := p.getNext(r)
 	s.push(uint16(p.index) + 1)
-	// fmt.Println("Call, A:", a, "Stack push:", p.index+1)
+	fmt.Fprintf(os.Stderr, "op args: %d, Stack Push: %d", a, p.index+1)
 	p.index = int(a)
 }
 
@@ -124,13 +126,14 @@ func eq(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	c := p.getNext(r)
-	// fmt.Println("Eq, A:", a, "B:", b, "C:", c)
 
+	set := 0
 	if b == c {
-		r.set(a, 1)
-	} else {
-		r.set(a, 0)
+		set = 1
 	}
+	r.set(a, uint16(set))
+
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, set)
 	p.index = p.index + 1
 }
 
@@ -141,17 +144,20 @@ func gt(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 
+	set := 0
 	if b > c {
-		r.set(a, 1)
-	} else {
-		r.set(a, 0)
+		set = 1
 	}
+	r.set(a, uint16(set))
+
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, set)
 	p.index = p.index + 1
 }
 
 // halt: 0
 //   stop execution and terminate the program
 func halt(p *program, r *registers, s *stack) {
+	fmt.Fprintf(os.Stderr, "op args: n/a")
 	os.Exit(0)
 }
 
@@ -164,7 +170,7 @@ func halt(p *program, r *registers, s *stack) {
 func in(p *program, r *registers, s *stack) {
 	if len(p.input) == 0 {
 		if err := p.getChars(); err != nil {
-			// fmt.Println("Error from p.getChars():", err)
+			fmt.Fprintln(os.Stderr, "Error from p.getChars():", err)
 			halt(p, r, s)
 		}
 	}
@@ -175,7 +181,7 @@ func in(p *program, r *registers, s *stack) {
 	p.input = p.input[1:]
 	r.set(a, b)
 
-	// fmt.Println("In, A:", a, "Index:", p.index, "Char:", b, "Char (str):", string(b))
+	fmt.Fprintf(os.Stderr, "op args: %d, Setting: %d (Char: %s)", a, b, string(b))
 	p.index = p.index + 1
 }
 
@@ -183,7 +189,7 @@ func in(p *program, r *registers, s *stack) {
 //   jump to <a>
 func jump(p *program, r *registers, s *stack) {
 	p.index = int(p.getNext(r))
-	// fmt.Println("Jump: to:", p.index)
+	fmt.Fprintf(os.Stderr, "op args: %d, jump location: %d", p.index, p.index)
 }
 
 // jf: 8 a b
@@ -197,7 +203,7 @@ func jumpFalse(p *program, r *registers, s *stack) {
 	} else {
 		p.index = p.index + 1
 	}
-	// fmt.Println("JumpFalse, a:", a, "b:", b, "index:", p.index)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, jump location: %d", a, b, p.index)
 }
 
 // jt: 7 a b
@@ -211,6 +217,7 @@ func jumpTrue(p *program, r *registers, s *stack) {
 	} else {
 		p.index = p.index + 1
 	}
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, jump location: %d", a, b, p.index)
 }
 
 // mod: 11 a b c
@@ -220,7 +227,7 @@ func mod(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.set(a, b%c)
-	// fmt.Println("Mod, A:", a, "B:", b, "C:", c, "Setting:", b%c)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, b%c)
 	p.index = p.index + 1
 }
 
@@ -231,6 +238,7 @@ func mult(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.set(a, (b*c)%modulo)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, (b*c)%modulo)
 	p.index = p.index + 1
 }
 
@@ -238,6 +246,7 @@ func mult(p *program, r *registers, s *stack) {
 //   no operation
 func noop(p *program, r *registers, s *stack) {
 	p.index = p.index + 1
+	fmt.Fprintf(os.Stderr, "op args: n/a")
 }
 
 // not: 14 a b
@@ -246,6 +255,7 @@ func not(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
 	r.set(a, ^b%modulo)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, Setting: %d", a, b, ^b%modulo)
 	p.index = p.index + 1
 }
 
@@ -256,13 +266,16 @@ func or(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	c := p.getNext(r)
 	r.set(a, b|c)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, %d, Setting: %d", a, b, c, b|c)
 	p.index = p.index + 1
 }
 
 // out: 19 a
 //   write the character represented by ascii code <a> to the terminal
 func out(p *program, r *registers, s *stack) {
-	fmt.Print(string(p.getNext(r)))
+	a := string(p.getNext(r))
+	fmt.Print(a)
+	fmt.Fprintf(os.Stderr, "op args: %s", a)
 	p.index = p.index + 1
 }
 
@@ -271,6 +284,7 @@ func out(p *program, r *registers, s *stack) {
 func push(p *program, r *registers, s *stack) {
 	a := p.getNext(r)
 	s.push(a)
+	fmt.Fprintf(os.Stderr, "op args: %d", a)
 	p.index = p.index + 1
 }
 
@@ -280,6 +294,7 @@ func pop(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := s.pop()
 	r.set(a, b)
+	fmt.Fprintf(os.Stderr, "op args: %d, stack arg: %d", a, b)
 	p.index = p.index + 1
 }
 
@@ -291,7 +306,7 @@ func ret(p *program, r *registers, s *stack) {
 	}
 
 	a := s.pop()
-	// fmt.Println("Ret, a:", a)
+	fmt.Fprintf(os.Stderr, "op args: n/a, stack arg: %d", a)
 	p.index = int(a)
 }
 
@@ -302,8 +317,8 @@ func rmem(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	m := p.memory[b]
 
-	// fmt.Println("Rmem, A:", a, "B:", b, "M:", m)
 	r.set(a, m)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d, memory value: %d", a, b, m)
 	p.index = p.index + 1
 }
 
@@ -316,6 +331,7 @@ func set(p *program, r *registers, s *stack) {
 	if isRegister(a) {
 		r.set(a, b)
 	}
+	fmt.Fprintf(os.Stderr, "op args: %d, %d", a, b)
 	p.index = p.index + 1
 }
 
@@ -326,6 +342,6 @@ func wmem(p *program, r *registers, s *stack) {
 	b := p.getNext(r)
 	p.memory[a] = b
 
-	// fmt.Println("Wmem, A:", a, "B:", b)
+	fmt.Fprintf(os.Stderr, "op args: %d, %d", a, b)
 	p.index = p.index + 1
 }

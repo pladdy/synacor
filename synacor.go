@@ -3,9 +3,11 @@ package synacor
 import (
 	"bufio"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // TODO: fmt.Println -> logs?
@@ -57,8 +59,23 @@ func (m Machine) Run() {
 	p := m.Program
 	for p.index < len(p.memory) {
 		v := opcode(p.memory[p.index])
-		//fmt.Printf("DEBUG: Memory index: %d, Decimal: %d, Binary: %b\n", p.index, v, v)
+		ops := operatorPropertyMap[v]
+
+		fmt.Fprintf(os.Stderr, "%d %s (%d) ", p.index, ops.name, v)
+
 		operatorFunctionMap[v](p, m.Registers, m.Stack)
+
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintf(os.Stderr, " Stack: %d, Registers: %d", m.Stack, m.Registers)
+		fmt.Fprintf(os.Stderr, " Input: '%s'\n", inputToString(p.input))
+
+		// custom debug statements
+		// first char typed into stdin gets set in a register...
+		if strings.Contains(inputToString(p.input), "se teleporter") {
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, "'use teleporter' called")
+			fmt.Fprintln(os.Stderr)
+		}
 	}
 }
 
@@ -175,6 +192,18 @@ func (s *stack) push(v uint16) {
 }
 
 /* helpers */
+
+// inputToString can only return what's in the input property; the first char
+// of any input is saved to a register and the rest of 'input' is read as in
+// operations are called.
+func inputToString(input []uint16) string {
+	var b strings.Builder
+
+	for i := 0; i < len(input); i++ {
+		fmt.Fprintf(&b, "%s", string(input[i]))
+	}
+	return b.String()
+}
 
 func isValid(u uint16) bool {
 	return u <= registerEnd
