@@ -73,8 +73,8 @@ var operatorPropertyMap = map[opcode]operatorProperty{
 	opHalt: {"halt", 0},
 	opIn:   {"in", 1},
 	opJmp:  {"jmp", 1},
-	opJt:   {"jf", 2},
-	opJf:   {"jt", 2},
+	opJt:   {"jt", 2},
+	opJf:   {"jf", 2},
 	opMod:  {"mod", 3},
 	opMult: {"mult", 3},
 	opNoop: {"noop", 0},
@@ -90,7 +90,7 @@ var operatorPropertyMap = map[opcode]operatorProperty{
 }
 
 // add: 9 a b c
-//  assign into <a> the sum of <b> and <c> (podulo 32768)
+//  assign into <a> the sum of <b> and <c> (modulo 32768)
 func add(p *program, r *registers, s *stack) {
 	a := p.getNextRaw()
 	b := p.getNext(r)
@@ -181,7 +181,7 @@ func in(p *program, r *registers, s *stack) {
 	p.input = p.input[1:]
 	r.set(a, b)
 
-	fmt.Fprintf(os.Stderr, "op args: %d, Setting: %d (Char: %s)", a, b, string(b))
+	fmt.Fprintf(os.Stderr, "op args: %d, Setting: %d (Char: %s)", a, b, string(rune(b)))
 	p.index = p.index + 1
 }
 
@@ -273,7 +273,7 @@ func or(p *program, r *registers, s *stack) {
 // out: 19 a
 //   write the character represented by ascii code <a> to the terminal
 func out(p *program, r *registers, s *stack) {
-	a := string(p.getNext(r))
+	a := string(rune(p.getNext(r)))
 	fmt.Print(a)
 	fmt.Fprintf(os.Stderr, "op args: %s", a)
 	p.index = p.index + 1

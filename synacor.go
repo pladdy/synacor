@@ -10,7 +10,22 @@ import (
 	"strings"
 )
 
-// TODO: fmt.Println -> logs?
+const maxMemory = 32767         // var memory [2 << 14]uint16
+const maxAllowedLiteral = 32767 // 2 << 14 - 1
+const modulo = 32768
+const registerStart = 32768
+const registerEnd = 32775
+
+const (
+	register0 = iota + registerStart
+	register1
+	register2
+	register3
+	register4
+	register5
+	register6
+	register7
+)
 
 // Machine which represents a program (in memory) that can be run.
 type Machine struct {
@@ -56,8 +71,42 @@ func (m Machine) NextOp() (name string, opCode uint16, args []uint16) {
 
 // Run the loaded program.
 func (m Machine) Run() {
+	// hacks
+	const hackSetReg = 6034
+	hackedSetReg := false
+
+	const hackEndOfRegisterTests = 521
+	hackedEndOfRegisterTests := false
+
+	const hackCallAcker = 6027
+	hackedCallAcker := false
+
 	p := m.Program
 	for p.index < len(p.memory) {
+
+		if p.index > hackEndOfRegisterTests && hackedEndOfRegisterTests == false {
+			// run `make teleporter` and result is entered here
+			m.Registers.set(registerEnd, uint16(25734))
+			hackedEndOfRegisterTests = true
+		}
+
+		// Below hacks will allow you to get to next part of the program
+
+		// Disable check to see program calls to see what value is being checked.
+		// The check takes too long to allow to run, so it has to be disabled.
+		if p.index >= hackCallAcker && hackedCallAcker == false {
+			m.Registers.set(registerStart, 0)
+			m.Registers.set(registerStart+1, 0)
+			hackedCallAcker = true
+		}
+
+		// Set first register to expected final result (6).  If the value in
+		// register 8 is wrong, the code you get will be invalid.
+		if p.index == hackSetReg && hackedSetReg == false {
+			m.Registers.set(registerStart, 6)
+			hackedSetReg = true
+		}
+
 		v := opcode(p.memory[p.index])
 		ops := operatorPropertyMap[v]
 
@@ -65,36 +114,16 @@ func (m Machine) Run() {
 
 		operatorFunctionMap[v](p, m.Registers, m.Stack)
 
-		fmt.Fprintln(os.Stderr)
 		fmt.Fprintf(os.Stderr, " Stack: %d, Registers: %d", m.Stack, m.Registers)
 		fmt.Fprintf(os.Stderr, " Input: '%s'\n", inputToString(p.input))
 
 		// custom debug statements
 		// first char typed into stdin gets set in a register...
 		if strings.Contains(inputToString(p.input), "se teleporter") {
-			fmt.Fprintln(os.Stderr)
-			fmt.Fprintln(os.Stderr, "'use teleporter' called")
-			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, "  'use teleporter' called")
 		}
 	}
 }
-
-const maxMemory = 32767         // var memory [2 << 14]uint16
-const maxAllowedLiteral = 32767 // 2 << 14 - 1
-const modulo = 32768
-const registerStart = 32768
-const registerEnd = 32775
-
-const (
-	register0 = iota + registerStart
-	register1
-	register2
-	register3
-	register4
-	register5
-	register6
-	register7
-)
 
 type program struct {
 	index  int
@@ -200,7 +229,7 @@ func inputToString(input []uint16) string {
 	var b strings.Builder
 
 	for i := 0; i < len(input); i++ {
-		fmt.Fprintf(&b, "%s", string(input[i]))
+		fmt.Fprintf(&b, "%s", string(rune((input[i]))))
 	}
 	return b.String()
 }
