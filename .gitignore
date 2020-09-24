@@ -18,3 +18,5 @@
 arch-spec
 codes
 coverage.txt
+
+*.log

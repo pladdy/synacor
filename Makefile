@@ -6,6 +6,9 @@ TEST = go test -v -failfast -cover $(TESTFILES)
 
 all: install
 
+bench:
+	cd cmd/teleporter/ && go test -bench .
+
 cover: coverage.txt
 	go tool cover -html=coverage.txt
 
@@ -32,6 +35,9 @@ lint:
 	go vet
 	gosec ./...
 
+teleporter:
+	go run cmd/teleporter/main.go
+
 test:
 	$(TEST)
 
@@ -43,4 +49,4 @@ else
 endif
 
 vm:
-	go run cmd/vm/main.go
+	go run cmd/vm/main.go 2> vm.log
