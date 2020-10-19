@@ -48,5 +48,8 @@ else
 	@echo Syntax is 'make $@ test=<test name>'
 endif
 
+vault:
+	go run cmd/vault/main.go
+
 vm:
 	go run cmd/vm/main.go 2> vm.log

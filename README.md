@@ -27,21 +27,25 @@ When the implemented VM runs the program downloaded with the project, a suite of
 tests are run first.  If the VM functions correctly the tests will pass and
 yield code 3.
 
-### OMG ZORG!
+### Playing the game
 
 No not really, but the program, after the tests, turns out to be an RPG style
 text game.  If you 'take tablet' when the program starts the game, you'll find
 code 4 after you 'use tablet'.
 
-### Exploring
+### The grue cave
 
 While exploring and playing the game, you'll find code 5 on the wall of a cave.
 
+### The coin challenge
+
+Solving this yields a teleporter.  When you take it and use it you get the 6th
+code.
+
 ### Teleporter, part 1
 
-You will find a teleporter, and when you use it, you'll get code 6.  However,
-you arrive at a dead end.  You have to explore and read a book to learn that
-the teleporter needs to be hacked...
+Once you use the teleporter you arrive at a dead end.  You have to explore and
+read a book to learn that the teleporter needs to be hacked...
 
 ### Teleporter, part 2
 
@@ -91,6 +95,24 @@ Tail call optimization might be needed for the teleporter function to be fast
 enough.
 -   [Functional Go](https://medium.com/@geisonfgfg/functional-go-bc116f4c96a4)
 -   [Ackermann recursive & iterative](https://gist.github.com/Sebbyastian/9bf5551f915b2694c77e)
+
+### Vault
+
+Graphs make my brain hurt.  I brute forced this unsuccessfully by just trying
+different combinations of movements to the vault.  I got close several times
+but my solutions were too many steps.
+
+I finally tried looking at [pankm's implementation](https://github.com/pankdm/synacor-challenge/blob/master/gdb.py)
+to see how he did the breadth first search, and when I looked at the source code
+I found the answer in an imported library...
+
+Can't unsee that unfortunately.  In hindsight, I'm a little surprised I didn't
+figure it out with my brute force tries AND I'm very sad I'm so bad at
+algorithms I couldn't implement BFS and just find all the paths on my own.
+
+TODO: Be better at graphs.
+
+NOTE: the 'vault' solution is incomplete and bad.
 
 ## Developing the VM
 
