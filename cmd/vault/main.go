@@ -50,7 +50,6 @@ func (t tree) load(file string) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
 
 	dec := json.NewDecoder(f)
 
@@ -71,6 +70,11 @@ func (t tree) load(file string) {
 		} else {
 			panic(fmt.Sprintf("Invalid neighbors: %v", n.Neighbors))
 		}
+	}
+
+	err = f.Close()
+	if err != nil {
+		panic(err)
 	}
 }
 
