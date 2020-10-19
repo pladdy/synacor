@@ -26,7 +26,7 @@ gosec:
 
 install: gosec
 	go get -u golang.org/x/lint/golint
-	go get github.com/fzipp/gocyclo
+	go get github.com/fzipp/gocyclo/cmd/gocyclo
 
 lint:
 	go fmt -x
